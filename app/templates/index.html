@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Status and Notifications</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css"> <!-- Ensure correct path to CSS file -->
+</head>
+<body>
+    <header>
+        <h1>Flight Status and Notifications</h1>
+    </header>
+    <main>
+        <section id="status-updates" class="card">
+            <h2>Real-time Flight Status</h2>
+            <div id="flight-info"></div>
+        </section>
+        <section id="notifications" class="card">
+            <h2>Subscribe to Notifications</h2>
+            <form id="notification-form">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+                <label for="phone">Phone:</label>
+                <input type="tel" id="phone" name="phone" required>
+                <button type="submit">Subscribe</button>
+            </form>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 Flight Status System</p>
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Fetch flight status
+            fetch('/flight_status')
+                .then(response => response.json())
+                .then(flights => {
+                    const flightInfo = document.getElementById('flight-info');
+                    flightInfo.innerHTML = ''; // Clear existing content
+                    flights.forEach(flight => {
+                        const flightCard = document.createElement('div');
+                        flightCard.className = 'flight-card';
+                        flightCard.innerHTML = `
+                            <div class="flight-id">Flight ${flight.flight_id}</div>
+                            <div class="status">${flight.status}</div>
+                            <div class="gate">Gate: ${flight.gate}</div>
+                        `;
+                        flightInfo.appendChild(flightCard);
+                    });
+                })
+                .catch(error => console.error('Error fetching flight status:', error));
+
+            // Handle form submission
+            document.getElementById('notification-form').addEventListener('submit', function (e) {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                const phone = document.getElementById('phone').value;
+
+                fetch('/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email, phone: phone })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message || 'Subscription successful');
+                    document.getElementById('notification-form').reset();
+                })
+                .catch(error => {
+                    console.error('Error subscribing:', error);
+                    alert('Failed to subscribe. Please try again.');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
